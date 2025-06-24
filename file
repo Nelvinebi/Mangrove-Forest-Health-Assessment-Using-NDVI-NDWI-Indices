@@ -1,0 +1,58 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Set seed for reproducibility
+np.random.seed(42)
+
+# Generate synthetic reflectance data for 150 points
+num_points = 150
+# Simulating reflectance values (range: 0 - 1)
+nir = np.random.uniform(0.2, 0.9, num_points)
+red = np.random.uniform(0.1, 0.7, num_points)
+green = np.random.uniform(0.1, 0.6, num_points)
+
+# Compute NDVI and NDWI
+ndvi = (nir - red) / (nir + red)
+ndwi = (green - nir) / (green + nir)
+
+# Create DataFrame
+df = pd.DataFrame({
+    'NIR': nir,
+    'Red': red,
+    'Green': green,
+    'NDVI': ndvi,
+    'NDWI': ndwi
+})
+
+# Health classification rules (simplified for mangrove context)
+def classify_health(ndvi, ndwi):
+    if ndvi > 0.6 and ndwi > -0.1:
+        return "Healthy"
+    elif 0.3 < ndvi <= 0.6 and ndwi > -0.3:
+        return "Moderate"
+    else:
+        return "Unhealthy"
+
+df['HealthStatus'] = df.apply(lambda row: classify_health(row['NDVI'], row['NDWI']), axis=1)
+
+# Summary
+print(df.head())
+
+# Count of health categories
+print("\nHealth Status Distribution:")
+print(df['HealthStatus'].value_counts())
+
+# Visualization: NDVI vs NDWI
+plt.figure(figsize=(10, 6))
+sns.scatterplot(data=df, x='NDVI', y='NDWI', hue='HealthStatus', palette='Set2', s=80)
+plt.title("Mangrove Forest Health Assessment using NDVI and NDWI", fontsize=14)
+plt.xlabel("NDVI")
+plt.ylabel("NDWI")
+plt.axvline(0.6, color='green', linestyle='--', label='NDVI Threshold (Healthy)')
+plt.axvline(0.3, color='orange', linestyle='--', label='NDVI Threshold (Moderate)')
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+plt.show()
